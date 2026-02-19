@@ -43,6 +43,11 @@ var policiesListCmd = &cobra.Command{
 		status, _ := cmd.Flags().GetString("status")
 		path += "&status=" + status
 
+		icd10, _ := cmd.Flags().GetString("icd10")
+		if icd10 != "" {
+			path += "&icd10=" + icd10
+		}
+
 		var result map[string]interface{}
 		if err := c.Get(path, &result); err != nil {
 			fmt.Printf("Error: %v\n", err)
@@ -187,6 +192,7 @@ func init() {
 	policiesListCmd.Flags().StringP("type", "t", "", "Policy type (LCD, Article, NCD)")
 	policiesListCmd.Flags().StringP("jurisdiction", "j", "", "MAC jurisdiction")
 	policiesListCmd.Flags().StringP("status", "s", "active", "Status (active, retired, all)")
+	policiesListCmd.Flags().String("icd10", "", "Filter by ICD-10 diagnosis code")
 
 	policiesGetCmd.Flags().StringSliceP("include", "i", []string{}, "Include additional data (criteria, codes, attachments, versions)")
 
