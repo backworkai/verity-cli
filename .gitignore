@@ -7,7 +7,6 @@ dist/
 # Go
 *.test
 *.prof
-go.sum
 
 # Config
 .verity.yaml

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/tylerbryy/verity-cli/cmd"
+	"github.com/backworkai/verity-cli/cmd"
 )
 
 func main() {

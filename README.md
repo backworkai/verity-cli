@@ -4,34 +4,34 @@ Command-line interface for the [Verity API](https://verity.backworkai.com) - Med
 
 ## Installation
 
+### From Source
+
+```bash
+go install github.com/backworkai/verity-cli@latest
+```
+
 ### Pre-built Binaries
 
-Download the latest release for your platform from [GitHub Releases](https://github.com/tylerbryy/verity-cli/releases).
+Pre-built binaries will be available from [GitHub Releases](https://github.com/backworkai/verity-cli/releases) once release assets are published.
 
 ```bash
 # macOS (Intel)
-curl -L https://github.com/tylerbryy/verity-cli/releases/latest/download/verity-darwin-amd64 -o verity
+curl -L https://github.com/backworkai/verity-cli/releases/latest/download/verity-darwin-amd64 -o verity
 chmod +x verity
 sudo mv verity /usr/local/bin/
 
 # macOS (Apple Silicon)
-curl -L https://github.com/tylerbryy/verity-cli/releases/latest/download/verity-darwin-arm64 -o verity
+curl -L https://github.com/backworkai/verity-cli/releases/latest/download/verity-darwin-arm64 -o verity
 chmod +x verity
 sudo mv verity /usr/local/bin/
 
 # Linux
-curl -L https://github.com/tylerbryy/verity-cli/releases/latest/download/verity-linux-amd64 -o verity
+curl -L https://github.com/backworkai/verity-cli/releases/latest/download/verity-linux-amd64 -o verity
 chmod +x verity
 sudo mv verity /usr/local/bin/
 
 # Windows
 # Download verity-windows-amd64.exe from releases
-```
-
-### From Source
-
-```bash
-go install github.com/tylerbryy/verity-cli@latest
 ```
 
 ## Quick Start
@@ -175,6 +175,48 @@ verity prior-auth 76942 --state TX --payer uhc
 - `-s, --state`: Two-letter state code
 - `-p, --payer`: Payer (medicare, aetna, uhc, all)
 
+### `verity claims validate [procedure-codes...]`
+
+Validate coverage and denial risk before claim submission.
+
+```bash
+verity claims validate 99213 --diagnosis E11.9 --payer Medicare --state TX
+verity claims validate 99213 --plan-type traditional_medicare --site-of-service office
+```
+
+**Flags:**
+- `-d, --diagnosis`: Diagnosis codes (ICD-10)
+- `-m, --modifier`: Procedure modifiers
+- `-s, --state`: Two-letter state code
+- `--payer`: Payer or policy source label
+- `--plan-type`: Plan type
+- `--site-of-service`: Site of service
+- `--idempotency-key`: Unique request identifier for safe retries
+
+### `verity compliance`
+
+List, acknowledge, and summarize policy changes.
+
+```bash
+verity compliance unreviewed --limit 10
+verity compliance stats
+verity compliance ack 123 --notes "Reviewed by billing team"
+verity compliance bulk-ack 123 124 125
+```
+
+### `verity drugs formulary [query]`
+
+Search commercial pharmacy-benefit formulary evidence.
+
+```bash
+verity drugs formulary ozempic --payer all --limit 5
+verity drugs formulary humira --payer cvs_caremark
+```
+
+**Flags:**
+- `-p, --payer`: Payer/PBM source (all, cvs_caremark, express_scripts, uhc)
+- `-l, --limit`: Maximum results per source
+
 ## Global Flags
 
 These flags work with all commands:
@@ -214,7 +256,7 @@ verity policies get L33831 --include criteria,codes --output json
 
 ```bash
 # Clone the repository
-git clone https://github.com/tylerbryy/verity-cli.git
+git clone https://github.com/backworkai/verity-cli.git
 cd verity-cli
 
 # Build for your platform
@@ -231,5 +273,5 @@ MIT License - see LICENSE file for details.
 ## Support
 
 - Documentation: https://verity.backworkai.com/docs
-- Issues: https://github.com/tylerbryy/verity-cli/issues
+- Issues: https://github.com/backworkai/verity-cli/issues
 - Email: support@verity.backworkai.com

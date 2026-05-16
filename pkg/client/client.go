@@ -36,6 +36,10 @@ func New(apiKey, baseURL string) *Client {
 }
 
 func (c *Client) Request(method, path string, body interface{}, result interface{}) error {
+	return c.RequestWithHeaders(method, path, body, result, nil)
+}
+
+func (c *Client) RequestWithHeaders(method, path string, body interface{}, result interface{}, headers map[string]string) error {
 	url := c.BaseURL + path
 
 	var bodyReader io.Reader
@@ -57,6 +61,9 @@ func (c *Client) Request(method, path string, body interface{}, result interface
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
 
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
@@ -69,7 +76,7 @@ func (c *Client) Request(method, path string, body interface{}, result interface
 		return fmt.Errorf("failed to read response: %w", err)
 	}
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
 		var errResp ErrorResponse
 		if err := json.Unmarshal(respBody, &errResp); err == nil && !errResp.Success {
 			return fmt.Errorf("%s: %s", errResp.Error.Code, errResp.Error.Message)
@@ -92,4 +99,8 @@ func (c *Client) Get(path string, result interface{}) error {
 
 func (c *Client) Post(path string, body interface{}, result interface{}) error {
 	return c.Request("POST", path, body, result)
+}
+
+func (c *Client) PostWithHeaders(path string, body interface{}, result interface{}, headers map[string]string) error {
+	return c.RequestWithHeaders("POST", path, body, result, headers)
 }
