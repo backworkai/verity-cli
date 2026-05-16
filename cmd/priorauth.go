@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/backworkai/verity-cli/pkg/client"
 	"github.com/spf13/cobra"
-	"github.com/tylerbryy/verity-cli/pkg/client"
 )
 
 var priorAuthCmd = &cobra.Command{
@@ -21,10 +21,10 @@ var priorAuthCmd = &cobra.Command{
 		payer, _ := cmd.Flags().GetString("payer")
 
 		reqBody := map[string]interface{}{
-			"procedure_codes":    args,
-			"payer":              payer,
-			"criteria_page":      1,
-			"criteria_per_page":  25,
+			"procedure_codes":   args,
+			"payer":             payer,
+			"criteria_page":     1,
+			"criteria_per_page": 25,
 		}
 
 		if len(diagnosisCodes) > 0 {

@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/backworkai/verity-cli/pkg/client"
 	"github.com/spf13/cobra"
-	"github.com/tylerbryy/verity-cli/pkg/client"
 )
 
 var healthCmd = &cobra.Command{
