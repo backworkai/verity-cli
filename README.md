@@ -4,9 +4,15 @@ Command-line interface for the [Verity API](https://verity.backworkai.com) - Med
 
 ## Installation
 
+### From Source
+
+```bash
+go install github.com/backworkai/verity-cli@latest
+```
+
 ### Pre-built Binaries
 
-Download the latest release for your platform from [GitHub Releases](https://github.com/backworkai/verity-cli/releases).
+Pre-built binaries will be available from [GitHub Releases](https://github.com/backworkai/verity-cli/releases) once release assets are published.
 
 ```bash
 # macOS (Intel)
@@ -26,12 +32,6 @@ sudo mv verity /usr/local/bin/
 
 # Windows
 # Download verity-windows-amd64.exe from releases
-```
-
-### From Source
-
-```bash
-go install github.com/backworkai/verity-cli@latest
 ```
 
 ## Quick Start
