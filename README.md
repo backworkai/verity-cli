@@ -1,75 +1,47 @@
 # Verity CLI
 
-Command-line interface for the [Verity API](https://verity.backworkai.com) - Medicare coverage policies, prior authorization requirements, and medical code lookups.
+Official command line interface for the [Verity API](https://verity.backworkai.com): Medicare coverage policies, medical code intelligence, prior authorization checks, claim validation, compliance review, and drug formulary evidence.
+
+The CLI is designed for shell workflows, operational scripts, and quick ad hoc lookups.
 
 ## Installation
 
-### From Source
-
 ```bash
-go install github.com/backworkai/verity-cli@latest
+git clone https://github.com/backworkai/verity-cli.git
+cd verity-cli
+go mod tidy
+go build -o verity .
+sudo mv verity /usr/local/bin/
 ```
 
-### Pre-built Binaries
-
-Pre-built binaries will be available from [GitHub Releases](https://github.com/backworkai/verity-cli/releases) once release assets are published.
-
-```bash
-# macOS (Intel)
-curl -L https://github.com/backworkai/verity-cli/releases/latest/download/verity-darwin-amd64 -o verity
-chmod +x verity
-sudo mv verity /usr/local/bin/
-
-# macOS (Apple Silicon)
-curl -L https://github.com/backworkai/verity-cli/releases/latest/download/verity-darwin-arm64 -o verity
-chmod +x verity
-sudo mv verity /usr/local/bin/
-
-# Linux
-curl -L https://github.com/backworkai/verity-cli/releases/latest/download/verity-linux-amd64 -o verity
-chmod +x verity
-sudo mv verity /usr/local/bin/
-
-# Windows
-# Download verity-windows-amd64.exe from releases
-```
+Pre-built release binaries will be published on [GitHub Releases](https://github.com/backworkai/verity-cli/releases).
 
 ## Quick Start
 
 ```bash
-# Set your API key
 export VERITY_API_KEY=vrt_live_YOUR_API_KEY
 
-# Look up a medical code
-verity check 76942
-
-# Search policies
-verity policies list --query "ultrasound guidance"
-
-# Check prior authorization
+verity health
+verity check 76942 --include rvu,policies
 verity prior-auth 76942 --state TX --diagnosis M54.5
-
-# Get policy details
-verity policies get L33831 --include criteria,codes
+verity policies list --query "ultrasound guidance" --type LCD
 ```
+
+Get an API key from the [Verity dashboard](https://verity.backworkai.com/dashboard).
 
 ## Configuration
 
-The CLI looks for configuration in the following order:
-1. Command-line flags
-2. Environment variables (prefixed with `VERITY_`)
-3. Config file (`~/.verity.yaml`)
+Configuration is resolved in this order:
 
-### Config File Example
+1. Command line flags
+2. Environment variables prefixed with `VERITY_`
+3. `~/.verity.yaml`
 
 ```yaml
-# ~/.verity.yaml
 api_key: vrt_live_YOUR_API_KEY
 base_url: https://verity.backworkai.com/api/v1
 output: table
 ```
-
-### Environment Variables
 
 ```bash
 export VERITY_API_KEY=vrt_live_YOUR_API_KEY
@@ -79,199 +51,95 @@ export VERITY_OUTPUT=json
 
 ## Commands
 
-### `verity check [code]`
-
-Look up a medical code (CPT, HCPCS, ICD-10, NDC).
+### Code Lookup
 
 ```bash
-# Basic lookup
 verity check 76942
-
-# Include RVU data
-verity check 76942 --include rvu
-
-# Include policies
-verity check 76942 --include rvu,policies
-
-# Filter by jurisdiction
-verity check 76942 --jurisdiction JM
-
-# JSON output
-verity check 76942 --output json
+verity check 76942 --include rvu,policies --jurisdiction JM
+verity batch 76942 99213 --include rvu,policies --output json
 ```
 
-**Flags:**
-- `-i, --include`: Include additional data (rvu, policies)
-- `-j, --jurisdiction`: Filter by MAC jurisdiction
-- `-f, --fuzzy`: Enable fuzzy matching (default: true)
-- `-o, --output`: Output format (table, json, yaml)
-
-### `verity policies list`
-
-Search and list policies.
+### Policies and Coverage
 
 ```bash
-# Search policies
-verity policies list --query "ultrasound guidance"
-
-# Filter by type
-verity policies list --type LCD
-
-# Filter by jurisdiction
-verity policies list --jurisdiction JM
-
-# Semantic search
-verity policies list --query "imaging procedures" --mode semantic
-
-# Include retired policies
-verity policies list --status all
+verity policies list --query "ultrasound guidance" --type LCD
+verity policies get L33831 --include criteria,codes
+verity policies compare 76942 --jurisdictions JM,JH,JK
+verity policies changes --since 2026-01-01T00:00:00Z
+verity coverage search "diabetes" --section indications --limit 10
+verity evaluate L33831 --procedure 76942 --diagnosis M54.5
 ```
 
-**Flags:**
-- `-q, --query`: Search query
-- `-m, --mode`: Search mode (keyword, semantic)
-- `-t, --type`: Policy type (LCD, Article, NCD)
-- `-j, --jurisdiction`: MAC jurisdiction
-- `-s, --status`: Status (active, retired, all)
-
-### `verity policies get [policy-id]`
-
-Get detailed information about a specific policy.
+### Prior Authorization and Claims
 
 ```bash
-# Basic policy info
-verity policies get L33831
-
-# Include criteria
-verity policies get L33831 --include criteria
-
-# Include codes and attachments
-verity policies get L33831 --include codes,attachments,criteria
-```
-
-**Flags:**
-- `-i, --include`: Include additional data (criteria, codes, attachments, versions)
-
-### `verity prior-auth [procedure-codes...]`
-
-Check prior authorization requirements.
-
-```bash
-# Check single procedure
-verity prior-auth 76942 --state TX
-
-# Check multiple procedures
-verity prior-auth 76942 76937 --state TX
-
-# Include diagnosis codes
-verity prior-auth 76942 --diagnosis M54.5,G89.29 --state TX
-
-# Check for different payer
-verity prior-auth 76942 --state TX --payer uhc
-```
-
-**Flags:**
-- `-d, --diagnosis`: Diagnosis codes (ICD-10), comma-separated
-- `-s, --state`: Two-letter state code
-- `-p, --payer`: Payer (medicare, aetna, uhc, all)
-
-### `verity claims validate [procedure-codes...]`
-
-Validate coverage and denial risk before claim submission.
-
-```bash
+verity prior-auth 76942 --state TX --diagnosis M54.5 --payer medicare
+verity prior-auth research 27447 --payer "UnitedHealthcare" --state TX --sync
 verity claims validate 99213 --diagnosis E11.9 --payer Medicare --state TX
-verity claims validate 99213 --plan-type traditional_medicare --site-of-service office
 ```
 
-**Flags:**
-- `-d, --diagnosis`: Diagnosis codes (ICD-10)
-- `-m, --modifier`: Procedure modifiers
-- `-s, --state`: Two-letter state code
-- `--payer`: Payer or policy source label
-- `--plan-type`: Plan type
-- `--site-of-service`: Site of service
-- `--idempotency-key`: Unique request identifier for safe retries
-
-### `verity compliance`
-
-List, acknowledge, and summarize policy changes.
+### Spending, Compliance, and Drugs
 
 ```bash
+verity spending T1019 T1020 --year 2023
 verity compliance unreviewed --limit 10
 verity compliance stats
-verity compliance ack 123 --notes "Reviewed by billing team"
-verity compliance bulk-ack 123 124 125
+verity compliance ack 123 --notes "Reviewed"
+verity drugs formulary ozempic --payer all --limit 5
 ```
 
-### `verity drugs formulary [query]`
-
-Search commercial pharmacy-benefit formulary evidence.
+### Webhooks
 
 ```bash
-verity drugs formulary ozempic --payer all --limit 5
-verity drugs formulary humira --payer cvs_caremark
+verity webhooks list
+verity webhooks create --url https://example.com/webhooks/verity --events policy.updated
+verity webhooks test 123
 ```
 
-**Flags:**
-- `-p, --payer`: Payer/PBM source (all, cvs_caremark, express_scripts, uhc)
-- `-l, --limit`: Maximum results per source
+## Output Formats
+
+All commands support the global output flag:
+
+```bash
+verity check 76942 --output json
+verity policies list --query diabetes --output yaml
+```
+
+Supported formats are `table`, `json`, and `yaml`.
 
 ## Global Flags
 
-These flags work with all commands:
-
-- `--api-key`: Verity API key
-- `--base-url`: API base URL
-- `--config`: Config file path
-- `-o, --output`: Output format (table, json, yaml)
-
-## Examples
-
-### Check if a procedure needs prior auth in Texas
-
-```bash
-verity prior-auth 76942 --state TX --diagnosis M54.5
+```text
+--api-key string    Verity API key, or set VERITY_API_KEY
+--base-url string   API base URL
+--config string     Config file path
+-o, --output        Output format: table, json, yaml
 ```
 
-### Find all LCD policies about ultrasound
+## Shell Completion
 
 ```bash
-verity policies list --query "ultrasound" --type LCD --output json
+verity completion bash
+verity completion zsh
+verity completion fish
+verity completion powershell
 ```
 
-### Look up a code and get pricing info
+## Development
 
 ```bash
-verity check 76942 --include rvu
-```
-
-### Get full details of a specific policy
-
-```bash
-verity policies get L33831 --include criteria,codes --output json
-```
-
-## Building from Source
-
-```bash
-# Clone the repository
-git clone https://github.com/backworkai/verity-cli.git
-cd verity-cli
-
-# Build for your platform
+go mod tidy
+go test ./...
+go vet ./...
 go build -o verity .
-
-# Or build for all platforms
-make build-all
 ```
-
-## License
-
-MIT License - see LICENSE file for details.
 
 ## Support
 
 - Documentation: https://verity.backworkai.com/docs
 - Issues: https://github.com/backworkai/verity-cli/issues
 - Email: support@verity.backworkai.com
+
+## License
+
+MIT
